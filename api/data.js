@@ -1,60 +1,83 @@
-// Vercel Serverless Function
-// This code will run on Vercel's servers.
-
 import { MongoClient } from 'mongodb';
 
-// Vercel automatically provides the MONGODB_URI you set in the project settings.
+// Get your MongoDB connection string from Vercel's environment variables
 const uri = process.env.MONGODB_URI;
-const client = new MongoClient(uri);
+const options = {};
 
-export default async function handler(request, response) {
-  // Allow requests from all origins (CORS) - Important for local testing and deployment
-  response.setHeader('Access-Control-Allow-Origin', '*');
-  response.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  response.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+let client;
+let clientPromise;
 
-  // Handle pre-flight OPTIONS request for CORS
-  if (request.method === 'OPTIONS') {
-    return response.status(200).end();
+if (!process.env.MONGODB_URI) {
+  throw new Error('Please define the MONGODB_URI environment variable');
+}
+
+// In development mode, use a global variable so that the value
+// is preserved across module reloads caused by HMR (Hot Module Replacement).
+if (process.env.NODE_ENV === 'development') {
+  if (!global._mongoClientPromise) {
+    client = new MongoClient(uri, options);
+    global._mongoClientPromise = client.connect();
   }
+  clientPromise = global._mongoClientPromise;
+} else {
+  // In production mode, it's best to not use a global variable.
+  client = new MongoClient(uri, options);
+  clientPromise = client.connect();
+}
 
+export default async function handler(req, res) {
   try {
-    // Connect to your MongoDB cluster
-    await client.connect();
-    const database = client.db('colorSensorDB'); // You can name your database anything
-    const collection = database.collection('readings'); // You can name your collection anything
+    const client = await clientPromise;
+    const db = client.db("colorimeter_db"); // Use a database name
+    const collection = db.collection("readings"); // Use a collection name
 
-    // --- Handle POST request from ESP32 ---
-    if (request.method === 'POST') {
-      const { red, green, blue } = request.body;
-      const doc = { red, green, blue, timestamp: new Date() };
-      
-      // Insert the new document into the collection
-      await collection.insertOne(doc);
-      return response.status(201).json({ message: 'Data saved successfully' });
-    }
+    // --- THIS IS THE CRUCIAL PART ---
+    // Check if the request is a POST request from the ESP32
+    if (req.method === 'POST') {
+      const { red, green, blue } = req.body;
 
-    // --- Handle GET request from the frontend website ---
-    if (request.method === 'GET') {
-      // Find the most recent document, sorted by timestamp descending
-      const latestReading = await collection.findOne({}, { sort: { timestamp: -1 } });
-      
-      // If no data exists yet, return a default gray color
-      if (!latestReading) {
-        return response.status(200).json({ red: 128, green: 128, blue: 128, timestamp: new Date() });
+      // Simple validation
+      if (typeof red === 'undefined' || typeof green === 'undefined' || typeof blue === 'undefined') {
+        return res.status(400).json({ error: 'Missing RGB values in request body' });
       }
-      
-      return response.status(200).json(latestReading);
+
+      // We will store only one document and continuously update it.
+      // This is efficient for displaying the 'latest' color.
+      const result = await collection.updateOne(
+        { _id: 'latest_color' }, // A fixed ID to always update the same document
+        { $set: { red, green, blue, timestamp: new Date() } },
+        { upsert: true } // This creates the document if it doesn't exist
+      );
+
+      return res.status(200).json({ message: 'Color updated successfully', result });
+    
+    // Check if the request is a GET request from the browser
+    } else if (req.method === 'GET') {
+      const latestColor = await collection.findOne({ _id: 'latest_color' });
+
+      if (latestColor) {
+        // Don't send the internal _id or timestamp to the frontend
+        return res.status(200).json({ 
+          red: latestColor.red, 
+          green: latestColor.green, 
+          blue: latestColor.blue 
+        });
+      } else {
+        // If no color has been sent yet, return a default gray color
+        return res.status(200).json({ red: 128, green: 128, blue: 128 });
+      }
+    
+    // If the method is neither GET nor POST
+    } else {
+      res.setHeader('Allow', ['GET', 'POST']);
+      return res.status(405).end(`Method ${req.method} Not Allowed`);
     }
 
-    // If the request is not POST or GET, return an error
-    return response.status(405).json({ message: 'Method Not Allowed' });
-
-  } catch (error) {
-    console.error(error);
-    return response.status(500).json({ message: 'Error connecting to database', error: error.message });
-  } finally {
-    // Ensures that the client will close when you finish/error
-    await client.close();
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ error: 'Failed to connect to database' });
   }
 }
+
+    
+
