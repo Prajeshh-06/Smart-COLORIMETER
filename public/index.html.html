@@ -5,357 +5,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Colorimeter Dashboard</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --primary: #2563eb;
-            --primary-dark: #1d4ed8;
-            --primary-light: #3b82f6;
-            --secondary: #64748b;
-            --secondary-light: #94a3b8;
-            --accent: #f59e0b;
-            --success: #10b981;
-            --error: #ef4444;
-            --background: #f8fafc;
-            --surface: #ffffff;
-            --surface-hover: #f1f5f9;
-            --text-primary: #0f172a;
-            --text-secondary: #475569;
-            --border: #e2e8f0;
-            --border-hover: #cbd5e1;
-            --shadow: rgba(15, 23, 42, 0.08);
-            --shadow-lg: rgba(15, 23, 42, 0.12);
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: var(--background);
-            color: var(--text-primary);
-            line-height: 1.6;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 24px;
-        }
-
-        .header {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 32px;
-            margin-bottom: 32px;
-            box-shadow: 0 4px 6px -1px var(--shadow);
-        }
-
-        .title {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .title::before {
-            content: "";
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-            border-radius: 8px;
-            display: inline-block;
-        }
-
-        .subtitle {
-            font-size: 1.125rem;
-            color: var(--text-secondary);
-            font-weight: 400;
-            margin-left: 52px;
-        }
-
-        .connection-status {
-            position: fixed;
-            top: 24px;
-            right: 24px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            padding: 12px 20px;
-            border-radius: 8px;
-            font-weight: 500;
-            font-size: 0.875rem;
-            box-shadow: 0 4px 6px -1px var(--shadow);
-            z-index: 100;
-        }
-
-        .status-indicator {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 8px;
-        }
-
+        /* CSS styles are the same as your original file - redacted for brevity */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --primary: #2563eb; --primary-dark: #1d4ed8; --primary-light: #3b82f6; --secondary: #64748b; --secondary-light: #94a3b8; --accent: #f59e0b; --success: #10b981; --error: #ef4444; --background: #f8fafc; --surface: #ffffff; --surface-hover: #f1f5f9; --text-primary: #0f172a; --text-secondary: #475569; --border: #e2e8f0; --border-hover: #cbd5e1; --shadow: rgba(15, 23, 42, 0.08); --shadow-lg: rgba(15, 23, 42, 0.12); }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: var(--background); color: var(--text-primary); line-height: 1.6; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+        .header { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 32px; margin-bottom: 32px; box-shadow: 0 4px 6px -1px var(--shadow); }
+        .title { font-size: 2.5rem; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
+        .title::before { content: ""; width: 40px; height: 40px; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); border-radius: 8px; display: inline-block; }
+        .subtitle { font-size: 1.125rem; color: var(--text-secondary); font-weight: 400; margin-left: 52px; }
+        .connection-status { position: fixed; top: 24px; right: 24px; background: var(--surface); border: 1px solid var(--border); padding: 12px 20px; border-radius: 8px; font-weight: 500; font-size: 0.875rem; box-shadow: 0 4px 6px -1px var(--shadow); z-index: 100; }
+        .status-indicator { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 8px; }
         .status-connected { background: var(--success); }
         .status-disconnected { background: var(--error); }
-
-        .controls {
-            display: flex;
-            gap: 16px;
-            margin-bottom: 32px;
-        }
-
-        .btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-weight: 500;
-            font-size: 0.875rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn:hover {
-            background: var(--primary-dark);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 6px -1px var(--shadow-lg);
-        }
-
-        .btn-secondary {
-            background: var(--surface);
-            color: var(--text-primary);
-            border: 1px solid var(--border);
-        }
-
-        .btn-secondary:hover {
-            background: var(--surface-hover);
-            border-color: var(--border-hover);
-        }
-
-        .dashboard {
-            display: grid;
-            grid-template-columns: 1fr 1.5fr;
-            gap: 32px;
-            margin-bottom: 32px;
-        }
-
-        .color-panel {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 32px;
-            box-shadow: 0 4px 6px -1px var(--shadow);
-        }
-
-        .color-sample {
-            width: 100%;
-            height: 200px;
-            border-radius: 8px;
-            margin-bottom: 24px;
-            border: 1px solid var(--border);
-            box-shadow: inset 0 2px 4px 0 var(--shadow);
-            transition: all 0.2s ease;
-        }
-
-        .color-values {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .value-item {
-            background: var(--background);
-            border: 1px solid var(--border);
-            padding: 16px;
-            border-radius: 8px;
-            text-align: center;
-        }
-
-        .value-label {
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 4px;
-        }
-
-        .value-number {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--text-primary);
-        }
-
-        .hex-display {
-            background: var(--primary);
-            color: white;
-            padding: 16px;
-            border-radius: 8px;
-            text-align: center;
-            font-size: 1.25rem;
-            font-weight: 600;
-            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
-        }
-
-        .info-panel {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 32px;
-            box-shadow: 0 4px 6px -1px var(--shadow);
-        }
-
-        .info-section {
-            margin-bottom: 32px;
-        }
-
-        .info-section:last-child {
-            margin-bottom: 0;
-        }
-
-        .section-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 16px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid var(--primary);
-            display: inline-block;
-        }
-
-        .info-grid {
-            display: grid;
-            gap: 16px;
-        }
-
-        .info-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 16px;
-            background: var(--background);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-        }
-
-        .info-label {
-            font-weight: 500;
-            color: var(--text-secondary);
-        }
-
-        .info-value {
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .mixing-guide {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 16px;
-            margin-top: 16px;
-        }
-
-        .mix-item {
-            text-align: center;
-            padding: 16px;
-            background: var(--background);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-        }
-
-        .mix-color {
-            width: 100%;
-            height: 40px;
-            border-radius: 6px;
-            margin-bottom: 8px;
-            border: 1px solid var(--border);
-        }
-
-        .mix-percentage {
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .mix-label {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .analysis-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-        }
-
-        .analysis-item {
-            text-align: center;
-            padding: 20px;
-            background: var(--background);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-        }
-
-        .analysis-value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--primary);
-            margin-bottom: 4px;
-        }
-
-        .analysis-label {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-
-        @media (max-width: 1024px) {
-            .dashboard {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 16px;
-            }
-            
-            .title {
-                font-size: 2rem;
-            }
-            
-            .controls {
-                flex-direction: column;
-            }
-            
-            .color-values {
-                grid-template-columns: 1fr;
-            }
-            
-            .analysis-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .connection-status {
-                position: relative;
-                top: auto;
-                right: auto;
-                margin-bottom: 16px;
-            }
-        }
+        .controls { display: flex; gap: 16px; margin-bottom: 32px; }
+        .btn { background: var(--primary); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 500; font-size: 0.875rem; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 8px; }
+        .btn:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 4px 6px -1px var(--shadow-lg); }
+        .dashboard { display: grid; grid-template-columns: 1fr 1.5fr; gap: 32px; margin-bottom: 32px; }
+        .color-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 32px; box-shadow: 0 4px 6px -1px var(--shadow); }
+        .color-sample { width: 100%; height: 200px; border-radius: 8px; margin-bottom: 24px; border: 1px solid var(--border); box-shadow: inset 0 2px 4px 0 var(--shadow); transition: all 0.2s ease; }
+        .color-values { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+        .value-item { background: var(--background); border: 1px solid var(--border); padding: 16px; border-radius: 8px; text-align: center; }
+        .value-label { font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+        .value-number { font-size: 1.5rem; font-weight: 700; color: var(--text-primary); }
+        .hex-display { background: var(--primary); color: white; padding: 16px; border-radius: 8px; text-align: center; font-size: 1.25rem; font-weight: 600; font-family: 'Monaco', 'Menlo', 'Consolas', monospace; }
+        .info-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 32px; box-shadow: 0 4px 6px -1px var(--shadow); }
+        .info-section { margin-bottom: 32px; }
+        .info-section:last-child { margin-bottom: 0; }
+        .section-title { font-size: 1.25rem; font-weight: 600; color: var(--text-primary); margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--primary); display: inline-block; }
+        .info-grid { display: grid; gap: 16px; }
+        .info-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: var(--background); border: 1px solid var(--border); border-radius: 6px; }
+        .info-label { font-weight: 500; color: var(--text-secondary); }
+        .info-value { font-weight: 600; color: var(--text-primary); }
+        .mixing-guide { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 16px; margin-top: 16px; }
+        .mix-item { text-align: center; padding: 16px; background: var(--background); border: 1px solid var(--border); border-radius: 8px; }
+        .mix-color { width: 100%; height: 40px; border-radius: 6px; margin-bottom: 8px; border: 1px solid var(--border); }
+        .mix-percentage { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); }
+        .mix-label { font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
+        .analysis-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+        .analysis-item { text-align: center; padding: 20px; background: var(--background); border: 1px solid var(--border); border-radius: 8px; }
+        .analysis-value { font-size: 2rem; font-weight: 700; color: var(--primary); margin-bottom: 4px; }
+        .analysis-label { font-size: 0.875rem; color: var(--text-secondary); font-weight: 500; }
+        @media (max-width: 1024px) { .dashboard { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) { .container { padding: 16px; } .title { font-size: 2rem; } .controls { flex-direction: column; } .color-values { grid-template-columns: 1fr; } .analysis-grid { grid-template-columns: 1fr; } .connection-status { position: relative; top: auto; right: auto; margin-bottom: 16px; } }
     </style>
 </head>
 <body>
@@ -371,144 +63,75 @@
         </div>
 
         <div class="controls">
-            <button class="btn" onclick="connectToESP32()">
+            <button class="btn" id="connectButton" onclick="connectToESP32()">
                 <span>📡</span> Connect to ESP32
-            </button>
-            <button class="btn btn-secondary" onclick="simulateColor()">
-                <span>🔄</span> Generate Test Color
             </button>
         </div>
 
         <div class="dashboard">
+            <!-- The rest of the HTML body is the same as your original file -->
             <div class="color-panel">
                 <div class="color-sample" id="colorSample" style="background-color: rgb(128, 128, 128);"></div>
-                
                 <div class="color-values">
-                    <div class="value-item">
-                        <div class="value-label">Red</div>
-                        <div class="value-number" id="rValue">128</div>
-                    </div>
-                    <div class="value-item">
-                        <div class="value-label">Green</div>
-                        <div class="value-number" id="gValue">128</div>
-                    </div>
-                    <div class="value-item">
-                        <div class="value-label">Blue</div>
-                        <div class="value-number" id="bValue">128</div>
-                    </div>
+                    <div class="value-item"><div class="value-label">Red</div><div class="value-number" id="rValue">128</div></div>
+                    <div class="value-item"><div class="value-label">Green</div><div class="value-number" id="gValue">128</div></div>
+                    <div class="value-item"><div class="value-label">Blue</div><div class="value-number" id="bValue">128</div></div>
                 </div>
-                
                 <div class="hex-display" id="hexValue">#808080</div>
             </div>
-
             <div class="info-panel">
-                <div class="info-section">
-                    <div class="section-title">Color Identification</div>
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <span class="info-label">Color Name</span>
-                            <span class="info-value" id="colorName">Medium Gray</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Pantone Code</span>
-                            <span class="info-value" id="pantoneCode">Cool Gray 7 C</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Color Family</span>
-                            <span class="info-value" id="colorFamily">Neutral</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Temperature</span>
-                            <span class="info-value" id="colorTemp">Neutral</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="info-section">
-                    <div class="section-title">Color Analysis</div>
-                    <div class="analysis-grid">
-                        <div class="analysis-item">
-                            <div class="analysis-value" id="brightnessValue">50%</div>
-                            <div class="analysis-label">Brightness</div>
-                        </div>
-                        <div class="analysis-item">
-                            <div class="analysis-value" id="saturationValue">0%</div>
-                            <div class="analysis-label">Saturation</div>
-                        </div>
-                        <div class="analysis-item">
-                            <div class="analysis-value" id="hueValue">0°</div>
-                            <div class="analysis-label">Hue</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="info-section">
-                    <div class="section-title">Color Mixing Guide</div>
-                    <div class="info-item">
-                        <span class="info-label">Instructions</span>
-                        <span class="info-value" id="mixingInstructions">Equal parts black and white</span>
-                    </div>
-                    <div class="mixing-guide" id="mixingColors">
-                        <div class="mix-item">
-                            <div class="mix-color" style="background: black;"></div>
-                            <div class="mix-percentage">50%</div>
-                            <div class="mix-label">Black</div>
-                        </div>
-                        <div class="mix-item">
-                            <div class="mix-color" style="background: white; border: 1px solid #ccc;"></div>
-                            <div class="mix-percentage">50%</div>
-                            <div class="mix-label">White</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="info-section">
-                    <div class="section-title">Applications</div>
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <span class="info-label">Design Usage</span>
-                            <span class="info-value" id="designUsage">Backgrounds, Text</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Mood</span>
-                            <span class="info-value" id="colorMood">Neutral, Professional</span>
-                        </div>
-                    </div>
-                </div>
+                <div class="info-section"><div class="section-title">Color Identification</div><div class="info-grid"><div class="info-item"><span class="info-label">Color Name</span><span class="info-value" id="colorName">Medium Gray</span></div><div class="info-item"><span class="info-label">Pantone Code</span><span class="info-value" id="pantoneCode">Cool Gray 7 C</span></div><div class="info-item"><span class="info-label">Color Family</span><span class="info-value" id="colorFamily">Neutral</span></div><div class="info-item"><span class="info-label">Temperature</span><span class="info-value" id="colorTemp">Neutral</span></div></div></div>
+                <div class="info-section"><div class="section-title">Color Analysis</div><div class="analysis-grid"><div class="analysis-item"><div class="analysis-value" id="brightnessValue">50%</div><div class="analysis-label">Brightness</div></div><div class="analysis-item"><div class="analysis-value" id="saturationValue">0%</div><div class="analysis-label">Saturation</div></div><div class="analysis-item"><div class="analysis-value" id="hueValue">0°</div><div class="analysis-label">Hue</div></div></div></div>
+                <div class="info-section"><div class="section-title">Color Mixing Guide</div><div class="info-item"><span class="info-label">Instructions</span><span class="info-value" id="mixingInstructions">Equal parts black and white</span></div><div class="mixing-guide" id="mixingColors"><div class="mix-item"><div class="mix-color" style="background: black;"></div><div class="mix-percentage">50%</div><div class="mix-label">Black</div></div><div class="mix-item"><div class="mix-color" style="background: white; border: 1px solid #ccc;"></div><div class="mix-percentage">50%</div><div class="mix-label">White</div></div></div></div>
+                <div class="info-section"><div class="section-title">Applications</div><div class="info-grid"><div class="info-item"><span class="info-label">Design Usage</span><span class="info-value" id="designUsage">Backgrounds, Text</span></div><div class="info-item"><span class="info-label">Mood</span><span class="info-value" id="colorMood">Neutral, Professional</span></div></div></div>
             </div>
         </div>
     </div>
 
+    <!-- ==================================================== -->
+    <!-- ========= NEW JAVASCRIPT LOGIC STARTS HERE ========= -->
+    <!-- ==================================================== -->
     <script>
-        let websocket = null;
         let isConnected = false;
+        let dataFetchInterval = null;
 
-        // Professional color database
-        const colorNames = {
-            '255,0,0': 'Pure Red', '220,20,60': 'Crimson', '178,34,34': 'Firebrick',
-            '139,0,0': 'Dark Red', '255,105,180': 'Hot Pink', '255,20,147': 'Deep Pink',
-            '0,255,0': 'Pure Green', '0,128,0': 'Green', '34,139,34': 'Forest Green',
-            '144,238,144': 'Light Green', '50,205,50': 'Lime Green', '0,100,0': 'Dark Green',
-            '0,0,255': 'Pure Blue', '0,0,139': 'Dark Blue', '135,206,235': 'Sky Blue',
-            '0,191,255': 'Deep Sky Blue', '25,25,112': 'Midnight Blue', '30,144,255': 'Dodger Blue',
-            '255,255,255': 'White', '0,0,0': 'Black', '128,128,128': 'Medium Gray',
-            '192,192,192': 'Silver', '64,64,64': 'Dark Gray', '211,211,211': 'Light Gray',
-            '255,255,0': 'Yellow', '255,215,0': 'Gold', '255,165,0': 'Orange',
-            '255,140,0': 'Dark Orange', '128,0,128': 'Purple', '75,0,130': 'Indigo',
-            '165,42,42': 'Brown', '160,82,45': 'Saddle Brown', '210,180,140': 'Tan'
-        };
+        // The URL for our backend API endpoint
+        const API_ENDPOINT = '/api/data';
+
+        const colorNames = { /* This object is the same as before */ '255,0,0': 'Pure Red', '220,20,60': 'Crimson', '178,34,34': 'Firebrick', '139,0,0': 'Dark Red', '255,105,180': 'Hot Pink', '255,20,147': 'Deep Pink', '0,255,0': 'Pure Green', '0,128,0': 'Green', '34,139,34': 'Forest Green', '144,238,144': 'Light Green', '50,205,50': 'Lime Green', '0,100,0': 'Dark Green', '0,0,255': 'Pure Blue', '0,0,139': 'Dark Blue', '135,206,235': 'Sky Blue', '0,191,255': 'Deep Sky Blue', '25,25,112': 'Midnight Blue', '30,144,255': 'Dodger Blue', '255,255,255': 'White', '0,0,0': 'Black', '128,128,128': 'Medium Gray', '192,192,192': 'Silver', '64,64,64': 'Dark Gray', '211,211,211': 'Light Gray', '255,255,0': 'Yellow', '255,215,0': 'Gold', '255,165,0': 'Orange', '255,140,0': 'Dark Orange', '128,0,128': 'Purple', '75,0,130': 'Indigo', '165,42,42': 'Brown', '160,82,45': 'Saddle Brown', '210,180,140': 'Tan' };
 
         function connectToESP32() {
-            // Simulate connection process
-            const statusIndicator = document.getElementById('statusIndicator');
-            const statusText = document.getElementById('statusText');
+            if (isConnected) return; // Don't do anything if already connected
+
+            const connectButton = document.getElementById('connectButton');
+            connectButton.disabled = true;
+            connectButton.textContent = 'Connecting...';
             
-            statusText.textContent = 'Connecting...';
-            
-            setTimeout(() => {
+            // Start fetching data every 2 seconds
+            dataFetchInterval = setInterval(fetchLatestColor, 2000);
+        }
+
+        async function fetchLatestColor() {
+            try {
+                const response = await fetch(API_ENDPOINT);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                
+                // Update the display with the REAL data from the server
+                updateColorDisplay(data.red, data.green, data.blue);
                 updateConnectionStatus(true);
-                startSimulation();
-            }, 1500);
+
+            } catch (error) {
+                console.error("Failed to fetch color data:", error);
+                updateConnectionStatus(false);
+                // Stop trying if there's an error
+                clearInterval(dataFetchInterval);
+                const connectButton = document.getElementById('connectButton');
+                connectButton.disabled = false;
+                connectButton.innerHTML = '<span>📡</span> Reconnect to ESP32';
+            }
         }
 
         function updateConnectionStatus(connected) {
@@ -524,208 +147,33 @@
                 statusText.textContent = 'Disconnected';
             }
         }
-
-        function startSimulation() {
-            if (!isConnected) return;
-            
-            setInterval(() => {
-                if (isConnected) {
-                    const r = Math.floor(Math.random() * 256);
-                    const g = Math.floor(Math.random() * 256);
-                    const b = Math.floor(Math.random() * 256);
-                    updateColorDisplay(r, g, b);
-                }
-            }, 3000);
-        }
-
-        function simulateColor() {
-            const r = Math.floor(Math.random() * 256);
-            const g = Math.floor(Math.random() * 256);
-            const b = Math.floor(Math.random() * 256);
-            updateColorDisplay(r, g, b);
-        }
+        
+        // --- All the helper functions below are the same as your original file ---
+        // They are just called with REAL data now instead of random data.
 
         function updateColorDisplay(r, g, b) {
-            // Update RGB values
             document.getElementById('rValue').textContent = r;
             document.getElementById('gValue').textContent = g;
             document.getElementById('bValue').textContent = b;
-            
-            // Update color sample
             document.getElementById('colorSample').style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
-            
-            // Update hex value
             const hex = rgbToHex(r, g, b);
             document.getElementById('hexValue').textContent = hex;
-            
-            // Update all color information
             updateColorAnalysis(r, g, b);
         }
-
-        function rgbToHex(r, g, b) {
-            return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
-        }
-
-        function getClosestColorName(r, g, b) {
-            let minDistance = Infinity;
-            let closestColor = 'Custom Color';
-            
-            for (const [key, name] of Object.entries(colorNames)) {
-                const [cr, cg, cb] = key.split(',').map(Number);
-                const distance = Math.sqrt(
-                    Math.pow(r - cr, 2) + Math.pow(g - cg, 2) + Math.pow(b - cb, 2)
-                );
-                
-                if (distance < minDistance) {
-                    minDistance = distance;
-                    closestColor = name;
-                }
-            }
-            
-            return closestColor;
-        }
-
-        function updateColorAnalysis(r, g, b) {
-            // Update color identification
-            document.getElementById('colorName').textContent = getClosestColorName(r, g, b);
-            document.getElementById('pantoneCode').textContent = getPantoneCode(r, g, b);
-            document.getElementById('colorFamily').textContent = getColorFamily(r, g, b);
-            document.getElementById('colorTemp').textContent = getTemperature(r, g, b);
-            
-            // Update analysis values
-            const brightness = Math.round(((r + g + b) / 3 / 255) * 100);
-            const max = Math.max(r, g, b);
-            const min = Math.min(r, g, b);
-            const saturation = max === 0 ? 0 : Math.round(((max - min) / max) * 100);
-            const hue = calculateHue(r, g, b);
-            
-            document.getElementById('brightnessValue').textContent = brightness + '%';
-            document.getElementById('saturationValue').textContent = saturation + '%';
-            document.getElementById('hueValue').textContent = hue + '°';
-            
-            // Update mixing guide
-            updateMixingGuide(r, g, b);
-            
-            // Update applications
-            document.getElementById('designUsage').textContent = getDesignUsage(r, g, b);
-            document.getElementById('colorMood').textContent = getColorMood(r, g, b);
-        }
-
-        function getPantoneCode(r, g, b) {
-            const max = Math.max(r, g, b);
-            if (r > g && r > b && r > 200) return 'Red 032 C';
-            if (g > r && g > b && g > 200) return 'Green 349 C';
-            if (b > r && b > g && b > 200) return 'Blue 286 C';
-            if (Math.abs(r - g) < 20 && Math.abs(g - b) < 20) {
-                return `Cool Gray ${Math.floor((255 - max) / 36) + 1} C`;
-            }
-            return 'Process Color';
-        }
-
-        function getColorFamily(r, g, b) {
-            const max = Math.max(r, g, b);
-            const threshold = 30;
-            
-            if (Math.abs(r - g) < threshold && Math.abs(g - b) < threshold) return 'Neutral';
-            if (r > g + threshold && r > b + threshold) return 'Red';
-            if (g > r + threshold && g > b + threshold) return 'Green';
-            if (b > r + threshold && b > g + threshold) return 'Blue';
-            if (r > 200 && g > 200 && b < 100) return 'Yellow';
-            if (r > 200 && b > 200 && g < 150) return 'Magenta';
-            if (g > 200 && b > 200 && r < 150) return 'Cyan';
-            return 'Mixed';
-        }
-
-        function getTemperature(r, g, b) {
-            const warmth = (r * 0.6 + g * 0.3) - (b * 0.7);
-            if (warmth > 30) return 'Warm';
-            if (warmth < -30) return 'Cool';
-            return 'Neutral';
-        }
-
-        function calculateHue(r, g, b) {
-            const max = Math.max(r, g, b);
-            const min = Math.min(r, g, b);
-            let hue = 0;
-            
-            if (max !== min) {
-                const delta = max - min;
-                if (max === r) {
-                    hue = ((g - b) / delta) % 6;
-                } else if (max === g) {
-                    hue = (b - r) / delta + 2;
-                } else {
-                    hue = (r - g) / delta + 4;
-                }
-                hue = Math.round(hue * 60);
-                if (hue < 0) hue += 360;
-            }
-            return hue;
-        }
-
-        function updateMixingGuide(r, g, b) {
-            const mixingColors = document.getElementById('mixingColors');
-            const instructions = document.getElementById('mixingInstructions');
-            
-            const primaries = [];
-            if (r > 50) primaries.push({name: 'Red', value: r, color: '#ef4444'});
-            if (g > 50) primaries.push({name: 'Green', value: g, color: '#10b981'});
-            if (b > 50) primaries.push({name: 'Blue', value: b, color: '#3b82f6'});
-            
-            if (primaries.length === 0) {
-                instructions.textContent = 'Very dark color - minimal pigment needed';
-                mixingColors.innerHTML = '<div class="mix-item"><div class="mix-color" style="background: black;"></div><div class="mix-percentage">95%</div><div class="mix-label">Black</div></div>';
-                return;
-            }
-            
-            const total = primaries.reduce((sum, p) => sum + p.value, 0);
-            const percentages = primaries.map(p => Math.round((p.value / total) * 100));
-            
-            instructions.textContent = primaries.map((p, i) => `${p.name}: ${percentages[i]}%`).join(', ');
-            
-            let html = '';
-            primaries.forEach((primary, i) => {
-                html += `
-                    <div class="mix-item">
-                        <div class="mix-color" style="background: ${primary.color};"></div>
-                        <div class="mix-percentage">${percentages[i]}%</div>
-                        <div class="mix-label">${primary.name}</div>
-                    </div>
-                `;
-            });
-            
-            mixingColors.innerHTML = html;
-        }
-
-        function getDesignUsage(r, g, b) {
-            const brightness = (r + g + b) / 3;
-            const saturation = Math.max(r, g, b) - Math.min(r, g, b);
-            
-            if (brightness > 200 && saturation < 50) return 'Backgrounds, Subtle Elements';
-            if (brightness < 100) return 'Text, Headers, Borders';
-            if (saturation > 150) return 'Accents, Highlights, CTAs';
-            if (saturation < 30) return 'Professional, Corporate';
-            return 'Versatile, General Use';
-        }
-
-        function getColorMood(r, g, b) {
-            const brightness = (r + g + b) / 3;
-            const saturation = Math.max(r, g, b) - Math.min(r, g, b);
-            const warmth = (r + g * 0.5) - b;
-            
-            let mood = brightness > 150 ? 'Bright' : brightness > 100 ? 'Balanced' : 'Subdued';
-            
-            if (saturation > 100) mood += ', Energetic';
-            else if (saturation < 30) mood += ', Calm';
-            
-            if (warmth > 50) mood += ', Warm';
-            else if (warmth < -50) mood += ', Cool';
-            
-            return mood;
-        }
-
+        function rgbToHex(r, g, b) { return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase(); }
+        function getClosestColorName(r, g, b) { let minDistance = Infinity; let closestColor = 'Custom Color'; for (const [key, name] of Object.entries(colorNames)) { const [cr, cg, cb] = key.split(',').map(Number); const distance = Math.sqrt(Math.pow(r - cr, 2) + Math.pow(g - cg, 2) + Math.pow(b - cb, 2)); if (distance < minDistance) { minDistance = distance; closestColor = name; } } return closestColor; }
+        function updateColorAnalysis(r, g, b) { document.getElementById('colorName').textContent = getClosestColorName(r, g, b); document.getElementById('pantoneCode').textContent = getPantoneCode(r, g, b); document.getElementById('colorFamily').textContent = getColorFamily(r, g, b); document.getElementById('colorTemp').textContent = getTemperature(r, g, b); const brightness = Math.round(((r + g + b) / 3 / 255) * 100); const max = Math.max(r, g, b); const min = Math.min(r, g, b); const saturation = max === 0 ? 0 : Math.round(((max - min) / max) * 100); const hue = calculateHue(r, g, b); document.getElementById('brightnessValue').textContent = brightness + '%'; document.getElementById('saturationValue').textContent = saturation + '%'; document.getElementById('hueValue').textContent = hue + '°'; updateMixingGuide(r, g, b); document.getElementById('designUsage').textContent = getDesignUsage(r, g, b); document.getElementById('colorMood').textContent = getColorMood(r, g, b); }
+        function getPantoneCode(r, g, b) { const max = Math.max(r, g, b); if (r > g && r > b && r > 200) return 'Red 032 C'; if (g > r && g > b && g > 200) return 'Green 349 C'; if (b > r && b > g && b > 200) return 'Blue 286 C'; if (Math.abs(r - g) < 20 && Math.abs(g - b) < 20) { return `Cool Gray ${Math.floor((255 - max) / 36) + 1} C`; } return 'Process Color'; }
+        function getColorFamily(r, g, b) { const max = Math.max(r, g, b); const threshold = 30; if (Math.abs(r - g) < threshold && Math.abs(g - b) < threshold) return 'Neutral'; if (r > g + threshold && r > b + threshold) return 'Red'; if (g > r + threshold && g > b + threshold) return 'Green'; if (b > r + threshold && b > g + threshold) return 'Blue'; if (r > 200 && g > 200 && b < 100) return 'Yellow'; if (r > 200 && b > 200 && g < 150) return 'Magenta'; if (g > 200 && b > 200 && r < 150) return 'Cyan'; return 'Mixed'; }
+        function getTemperature(r, g, b) { const warmth = (r * 0.6 + g * 0.3) - (b * 0.7); if (warmth > 30) return 'Warm'; if (warmth < -30) return 'Cool'; return 'Neutral'; }
+        function calculateHue(r, g, b) { const max = Math.max(r, g, b); const min = Math.min(r, g, b); let hue = 0; if (max !== min) { const delta = max - min; if (max === r) { hue = ((g - b) / delta) % 6; } else if (max === g) { hue = (b - r) / delta + 2; } else { hue = (r - g) / delta + 4; } hue = Math.round(hue * 60); if (hue < 0) hue += 360; } return hue; }
+        function updateMixingGuide(r, g, b) { const mixingColors = document.getElementById('mixingColors'); const instructions = document.getElementById('mixingInstructions'); const primaries = []; if (r > 50) primaries.push({name: 'Red', value: r, color: '#ef4444'}); if (g > 50) primaries.push({name: 'Green', value: g, color: '#10b981'}); if (b > 50) primaries.push({name: 'Blue', value: b, color: '#3b82f6'}); if (primaries.length === 0) { instructions.textContent = 'Very dark color - minimal pigment needed'; mixingColors.innerHTML = '<div class="mix-item"><div class="mix-color" style="background: black;"></div><div class="mix-percentage">95%</div><div class="mix-label">Black</div></div>'; return; } const total = primaries.reduce((sum, p) => sum + p.value, 0); const percentages = primaries.map(p => Math.round((p.value / total) * 100)); instructions.textContent = primaries.map((p, i) => `${p.name}: ${percentages[i]}%`).join(', '); let html = ''; primaries.forEach((primary, i) => { html += ` <div class="mix-item"> <div class="mix-color" style="background: ${primary.color};"></div> <div class="mix-percentage">${percentages[i]}%</div> <div class="mix-label">${primary.name}</div> </div> `; }); mixingColors.innerHTML = html; }
+        function getDesignUsage(r, g, b) { const brightness = (r + g + b) / 3; const saturation = Math.max(r, g, b) - Math.min(r, g, b); if (brightness > 200 && saturation < 50) return 'Backgrounds, Subtle Elements'; if (brightness < 100) return 'Text, Headers, Borders'; if (saturation > 150) return 'Accents, Highlights, CTAs'; if (saturation < 30) return 'Professional, Corporate'; return 'Versatile, General Use'; }
+        function getColorMood(r, g, b) { const brightness = (r + g + b) / 3; const saturation = Math.max(r, g, b) - Math.min(r, g, b); const warmth = (r + g * 0.5) - b; let mood = brightness > 150 ? 'Bright' : brightness > 100 ? 'Balanced' : 'Subdued'; if (saturation > 100) mood += ', Energetic'; else if (saturation < 30) mood += ', Calm'; if (warmth > 50) mood += ', Warm'; else if (warmth < -50) mood += ', Cool'; return mood; }
+        
         // Initialize with default color
         updateColorDisplay(128, 128, 128);
     </script>
 </body>
 </html>
+
