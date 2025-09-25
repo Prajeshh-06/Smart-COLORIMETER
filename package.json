@@ -1,0 +1,13 @@
+{
+  "name": "color-sensor-backend",
+  "version": "1.0.0",
+  "description": "API for ESP32 color sensor data",
+  "main": "api/data.js",
+  "scripts": {
+    "start": "vercel dev"
+  },
+  "dependencies": {
+    "mongodb": "^6.5.0"
+  }
+}
+
