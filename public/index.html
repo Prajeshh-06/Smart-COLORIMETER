@@ -21,6 +21,8 @@
         .controls { display: flex; gap: 16px; margin-bottom: 32px; }
         .btn { background: var(--primary); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 500; font-size: 0.875rem; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 8px; }
         .btn:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 4px 6px -1px var(--shadow-lg); }
+        .btn-secondary { background: var(--surface); color: var(--text-primary); border: 1px solid var(--border); }
+        .btn-secondary:hover { background: var(--surface-hover); border-color: var(--border-hover); }
         .dashboard { display: grid; grid-template-columns: 1fr 1.5fr; gap: 32px; margin-bottom: 32px; }
         .color-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 32px; box-shadow: 0 4px 6px -1px var(--shadow); }
         .color-sample { width: 100%; height: 200px; border-radius: 8px; margin-bottom: 24px; border: 1px solid var(--border); box-shadow: inset 0 2px 4px 0 var(--shadow); transition: all 0.2s ease; }
@@ -66,6 +68,7 @@
             <button class="btn" id="connectButton" onclick="connectToESP32()">
                 <span>📡</span> Connect to ESP32
             </button>
+            <!-- Removed the simulation button to avoid confusion -->
         </div>
 
         <div class="dashboard">
@@ -95,7 +98,7 @@
         let isConnected = false;
         let dataFetchInterval = null;
 
-        // The URL for our backend API endpoint
+        // The relative URL for our backend API endpoint
         const API_ENDPOINT = '/api/data';
 
         const colorNames = { /* This object is the same as before */ '255,0,0': 'Pure Red', '220,20,60': 'Crimson', '178,34,34': 'Firebrick', '139,0,0': 'Dark Red', '255,105,180': 'Hot Pink', '255,20,147': 'Deep Pink', '0,255,0': 'Pure Green', '0,128,0': 'Green', '34,139,34': 'Forest Green', '144,238,144': 'Light Green', '50,205,50': 'Lime Green', '0,100,0': 'Dark Green', '0,0,255': 'Pure Blue', '0,0,139': 'Dark Blue', '135,206,235': 'Sky Blue', '0,191,255': 'Deep Sky Blue', '25,25,112': 'Midnight Blue', '30,144,255': 'Dodger Blue', '255,255,255': 'White', '0,0,0': 'Black', '128,128,128': 'Medium Gray', '192,192,192': 'Silver', '64,64,64': 'Dark Gray', '211,211,211': 'Light Gray', '255,255,0': 'Yellow', '255,215,0': 'Gold', '255,165,0': 'Orange', '255,140,0': 'Dark Orange', '128,0,128': 'Purple', '75,0,130': 'Indigo', '165,42,42': 'Brown', '160,82,45': 'Saddle Brown', '210,180,140': 'Tan' };
@@ -105,28 +108,40 @@
 
             const connectButton = document.getElementById('connectButton');
             connectButton.disabled = true;
-            connectButton.textContent = 'Connecting...';
+            connectButton.innerHTML = '<span>📡</span> Connecting...';
             
-            // Start fetching data every 2 seconds
+            // Immediately fetch the first color, then start the interval
+            fetchLatestColor();
             dataFetchInterval = setInterval(fetchLatestColor, 2000);
         }
 
         async function fetchLatestColor() {
             try {
+                // Fetch makes a GET request to our backend API
                 const response = await fetch(API_ENDPOINT);
+                
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
+                
                 const data = await response.json();
                 
-                // Update the display with the REAL data from the server
-                updateColorDisplay(data.red, data.green, data.blue);
-                updateConnectionStatus(true);
+                // Check if we received valid data
+                if (data && typeof data.red !== 'undefined') {
+                    // Update the entire dashboard with REAL data from the server
+                    updateColorDisplay(data.red, data.green, data.blue);
+                    updateConnectionStatus(true);
+                } else {
+                    // Handle case where data is empty but request was successful
+                    console.warn("Received empty or invalid data from server.");
+                    updateConnectionStatus(true, "No data yet");
+                }
+
 
             } catch (error) {
                 console.error("Failed to fetch color data:", error);
                 updateConnectionStatus(false);
-                // Stop trying if there's an error
+                // Stop trying if there's a network error to prevent spamming
                 clearInterval(dataFetchInterval);
                 const connectButton = document.getElementById('connectButton');
                 connectButton.disabled = false;
@@ -134,14 +149,14 @@
             }
         }
 
-        function updateConnectionStatus(connected) {
+        function updateConnectionStatus(connected, message = null) {
             isConnected = connected;
             const statusIndicator = document.getElementById('statusIndicator');
             const statusText = document.getElementById('statusText');
             
             if (connected) {
                 statusIndicator.className = 'status-indicator status-connected';
-                statusText.textContent = 'Connected to ESP32';
+                statusText.textContent = message || 'Connected to ESP32';
             } else {
                 statusIndicator.className = 'status-indicator status-disconnected';
                 statusText.textContent = 'Disconnected';
