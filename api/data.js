@@ -31,43 +31,80 @@ export default async function handler(req, res) {
     const db = client.db("colorimeter_db"); // Use a database name
     const collection = db.collection("readings"); // Use a collection name
 
-    // --- THIS IS THE CRUCIAL PART ---
-    // Check if the request is a POST request from the ESP32
+    // --- 1. HANDLE POST REQUESTS ---
     if (req.method === 'POST') {
-      const { red, green, blue } = req.body;
+      const { red, green, blue, scan } = req.body;
 
-      // Simple validation
-      if (typeof red === 'undefined' || typeof green === 'undefined' || typeof blue === 'undefined') {
-        return res.status(400).json({ error: 'Missing RGB values in request body' });
+      // --- 1a. POST from Postman to request a scan ---
+      if (typeof scan !== 'undefined' && scan === true) {
+        // Set the scan request flag in the database
+        await collection.updateOne(
+          { _id: 'scan_control' },
+          { $set: { scan_requested: true, timestamp: new Date() } },
+          { upsert: true }
+        );
+        return res.status(200).json({ message: 'Scan successfully requested.' });
       }
 
-      // We will store only one document and continuously update it.
-      // This is efficient for displaying the 'latest' color.
-      const result = await collection.updateOne(
-        { _id: 'latest_color' }, // A fixed ID to always update the same document
-        { $set: { red, green, blue, timestamp: new Date() } },
-        { upsert: true } // This creates the document if it doesn't exist
-      );
+      // --- 1b. POST from ESP32 with new color data ---
+      if (typeof red !== 'undefined' && typeof green !== 'undefined' && typeof blue !== 'undefined') {
+        // Store the latest color
+        await collection.updateOne(
+          { _id: 'latest_color' }, // A fixed ID to always update the same document
+          { $set: { red, green, blue, timestamp: new Date() } },
+          { upsert: true } // This creates the document if it doesn't exist
+        );
+        return res.status(200).json({ message: 'Color updated successfully' });
+      }
 
-      return res.status(200).json({ message: 'Color updated successfully', result });
-    
-    // Check if the request is a GET request from the browser
+      // --- 1c. Invalid POST request ---
+      return res.status(400).json({ error: 'Invalid POST body. Must include {scan: true} or {red, green, blue}.' });
+
+    // --- 2. HANDLE GET REQUESTS ---
     } else if (req.method === 'GET') {
-      const latestColor = await collection.findOne({ _id: 'latest_color' });
+      
+      // Check for a query parameter. Your ESP32 will use this.
+      // e.g., /api/data?client=esp32
+      const isEsp32 = req.query.client === 'esp32';
 
-      if (latestColor) {
-        // Don't send the internal _id or timestamp to the frontend
-        return res.status(200).json({ 
-          red: latestColor.red, 
-          green: latestColor.green, 
-          blue: latestColor.blue 
-        });
+      if (isEsp32) {
+        // --- 2a. GET from ESP32: Check for scan request ---
+        const scanControl = await collection.findOne({ _id: 'scan_control' });
+
+        if (scanControl && scanControl.scan_requested === true) {
+          // Found a scan request! Tell the ESP32 to scan.
+          
+          // IMPORTANT: Immediately set the flag back to false
+          // so the ESP32 only scans once.
+          await collection.updateOne(
+            { _id: 'scan_control' },
+            { $set: { scan_requested: false } }
+          );
+          
+          // Send the "scan" command
+          return res.status(200).json({ scan_requested: true });
+        } else {
+          // No scan request, tell ESP32 to wait.
+          return res.status(200).json({ scan_requested: false });
+        }
+        
       } else {
-        // If no color has been sent yet, return a default gray color
-        return res.status(200).json({ red: 128, green: 128, blue: 128 });
+        // --- 2b. GET from Website: Get the latest color ---
+        const latestColor = await collection.findOne({ _id: 'latest_color' });
+
+        if (latestColor) {
+          return res.status(200).json({
+            red: latestColor.red,
+            green: latestColor.green,
+            blue: latestColor.blue
+          });
+        } else {
+          // If no color has been sent yet, return a default
+          return res.status(200).json({ red: 128, green: 128, blue: 128 });
+        }
       }
-    
-    // If the method is neither GET nor POST
+
+    // --- 3. HANDLE OTHER METHODS ---
     } else {
       res.setHeader('Allow', ['GET', 'POST']);
       return res.status(405).end(`Method ${req.method} Not Allowed`);
@@ -78,6 +115,3 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Failed to connect to database' });
   }
 }
-
-    
-
