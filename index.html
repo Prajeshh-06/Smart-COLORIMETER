@@ -4,56 +4,49 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Colorimeter</title>
-    
     <!-- 1. Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- 2. Load React & ReactDOM -->
-    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
-    
-    <!-- 3. Load Babel to compile JSX in the browser -->
+    <!-- 2. Load React & Babel -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
-    <!-- 4. Custom styles (from the <style jsx> tag) -->
+
     <style>
+        /* Simple scan line animation */
         @keyframes scan {
-          0% { transform: translateY(-100%); }
-          100% { transform: translateY(100%); }
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
         }
         .animate-scan {
-          animation: scan 2s linear infinite;
+            animation: scan 2s linear infinite;
         }
-        /* Simple spinner animation */
-        @keyframes spin {
-          to { transform: rotate(360deg); }
+        /* Custom scrollbar for dark mode */
+        ::-webkit-scrollbar {
+            width: 8px;
         }
-        .spinner {
-          display: inline-block;
-          border: 2px solid currentColor;
-          border-top-color: transparent;
-          border-radius: 50%;
-          width: 1em;
-          height: 1em;
-          animation: spin 0.6s linear infinite;
+        ::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #444;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
         }
     </style>
 </head>
-<body class="bg-black">
-    <!-- This is where our React app will be mounted -->
+<body>
+    <!-- The React app will render here -->
     <div id="root"></div>
 
-    <!-- 5. Run the React App (using type="text/babel") -->
+    <!-- 3. Your React App Code -->
     <script type="text/babel">
-        // Destructure React hooks
-        const { useState, useEffect, useRef } = React;
-
         // --- Icon Components (Replaced lucide-react) ---
-        const Icon = ({ className, children }) => (
+        // We define these as simple React components
+        const Icon = ({ path, className = "w-6 h-6" }) => (
             <svg
                 xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -62,609 +55,554 @@
                 strokeLinejoin="round"
                 className={className}
             >
-                {children}
+                <path d={path} />
             </svg>
         );
-        
-        const Scan = ({ className }) => <Icon className={className}><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12a5 5 0 0 1 5-5"/><path d="M12 17a5 5 0 0 0 5-5"/></Icon>;
-        const Play = ({ className }) => <Icon className={className}><polygon points="6 3 20 12 6 21 6 3"/></Icon>;
-        const Square = ({ className }) => <Icon className={className}><rect width="18" height="18" x="3" y="3" rx="2"/></Icon>;
-        const Plus = ({ className }) => <Icon className={className}><path d="M5 12h14"/><path d="M12 5v14"/></Icon>;
-        const X = ({ className }) => <Icon className={className}><path d="M18 6 6 18"/><path d="m6 6 12 12"/></Icon>;
-        const Copy = ({ className }) => <Icon className={className}><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></Icon>;
-        const Download = ({ className }) => <Icon className={className}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></Icon>;
-        const FileCode = ({ className }) => <Icon className={className}><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="m10 13-2 2 2 2"/><path d="m14 17 2-2-2-2"/></Icon>;
-        const Droplets = ({ className }) => <Icon className={className}><path d="M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.7-3.02-1.55-1.04-4.3-1-5.6 1.34A4.01 4.01 0 0 0 7 16.3Z"/><path d="M16.3 7c0-2.2-1.83-4-4.05-4-1.16 0-2.26.57-3.02 1.7-1.04 1.55-1 4.3 1.34 5.6A4.01 4.01 0 0 0 16.3 7Z"/></Icon>;
-        const Activity = ({ className }) => <Icon className={className}><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></Icon>;
-        const Sparkles = ({ className }) => <Icon className={className}><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></Icon>;
 
-        // --- Main App Component (from your .tsx file) ---
-        
-        const ColorimeterApp = () => {
-          const [esp32Ip, setEsp32Ip] = useState('192.168.4.1');
-          const [currentColor, setCurrentColor] = useState({ r: 138, g: 43, b: 226 });
-          const [isScanning, setIsScanning] = useState(false);
-          const [palette, setPalette] = useState([]);
-          const [activeHarmony, setActiveHarmony] = useState('complementary');
-          const scanIntervalRef = useRef(null);
+        const Scan = ({ className }) => <Icon className={className} path="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 12a5 5 0 0 1 5-5 5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5z" />;
+        const Activity = ({ className }) => <Icon className={className} path="M22 12h-4l-3 9L9 3l-3 9H2" />;
+        const Square = ({ className }) => <Icon className={className} path="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />;
+        const Play = ({ className }) => <Icon className={className} path="m5 3 14 9-14 9V3z" />;
+        const Plus = ({ className }) => <Icon className={className} path="M5 12h14M12 5v14" />;
+        const Copy = ({ className }) => <Icon className={className} path="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2m4 0V2a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2m-6 0h6" />;
+        const FileCode = ({ className }) => <Icon className={className} path="m14.5 2.5-3 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5l-3-3-3.5 3.5M10 18l-3-3 3-3M14 18l3-3-3-3" />;
+        const Download = ({ className }) => <Icon className={className} path="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />;
+        const Droplets = ({ className }) => <Icon className={className} path="M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.08-1.4-2.65a5.53 5.53 0 0 0-5.2 0C3.57 9.57 3 10.49 3 11.65c0 2.22 1.8 4.05 4 4.05zM12.6 18.28a5.53 5.53 0 0 0 5.2 0c.83-.57 1.4-1.49 1.4-2.65 0-2.22-1.8-4.05-4-4.05-2.2 0-4 1.83-4 4.05 0 1.16.57 2.08 1.4 2.65z" />;
+        const X = ({ className }) => <Icon className={className} path="M18 6 6 18M6 6l12 12" />;
 
-          // --- ✨ Gemini API State ---
-          const [aiColorName, setAiColorName] = useState('Blue Violet');
-          const [isNameLoading, setIsNameLoading] = useState(false);
-          const [paletteDescription, setPaletteDescription] = useState('');
-          const [isPaletteLoading, setIsPaletteLoading] = useState(false);
-          const [geminiError, setGeminiError] = useState('');
-
-          // --- ✨ Gemini API Call Function ---
-          const callGeminiApi = async (prompt, systemInstruction) => {
-              setGeminiError('');
-              const apiKey = ""; // Leave as-is
-              const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-              
-              const payload = {
-                  contents: [{ parts: [{ text: prompt }] }],
-              };
-
-              if (systemInstruction) {
-                  payload.systemInstruction = {
-                      parts: [{ text: systemInstruction }]
-                  };
-              }
-
-              try {
-                  const response = await fetch(apiUrl, {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify(payload)
-                  });
-
-                  if (!response.ok) {
-                      throw new Error(`API error: ${response.statusText}`);
-                  }
-
-                  const result = await response.json();
-                  const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
-
-                  if (text) {
-                      return text.trim();
-                  } else {
-                      throw new Error("No text returned from API.");
-                  }
-              } catch (error) {
-                  console.error("Gemini API call failed:", error);
-                  setGeminiError("AI feature failed. Please try again.");
-                  return null;
-              }
-          };
-
-          // --- ✨ Gemini Feature 1: AI Color Naming ---
-          const getAiColorName = async (r, g, b) => {
-              setIsNameLoading(true);
-              const prompt = `Give a creative, marketable name for the color RGB(${r}, ${g}, ${b}). For example: 'Deep Sea Blue', 'Sunset Orange', 'Dusty Rose'. Only return the name, nothing else.`;
-              const systemInstruction = "You are a creative branding expert specializing in color names.";
-              const name = await callGeminiApi(prompt, systemInstruction);
-              if (name) {
-                  setAiColorName(name.replace(/["']/g, "")); // Remove quotes
-              }
-              setIsNameLoading(false);
-          };
-
-          // --- ✨ Gemini Feature 2: AI Palette Description ---
-          const getPaletteDescription = async () => {
-              if (palette.length < 2) return;
-              
-              setIsPaletteLoading(true);
-              setPaletteDescription('');
-              const hexPalette = palette.map(c => rgbToHex(c.r, c.g, c.b)).join(', ');
-              const prompt = `Describe the mood and theme of this color palette: ${hexPalette}. Keep it to one or two sentences.`;
-              const systemInstruction = "You are an interior designer and branding expert.";
-              
-              const description = await callGeminiApi(prompt, systemInstruction);
-              if (description) {
-                  setPaletteDescription(description);
-              }
-              setIsPaletteLoading(false);
-          };
-
-
-          // --- Original Color Utilities (Untouched) ---
-          const rgbToHex = (r, g, b) => {
-            return '#' + [r, g, b].map(x => {
-              const hex = x.toString(16);
-              return hex.length === 1 ? '0' + hex : hex;
-            }).join('');
-          };
-
-          const rgbToHsl = (r, g, b) => {
-            r /= 255; g /= 255; b /= 255;
-            const max = Math.max(r, g, b), min = Math.min(r, g, b);
-            let h, s, l = (max + min) / 2;
-
-            if (max === min) {
-              h = s = 0;
-            } else {
-              const d = max - min;
-              s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-              switch (max) {
-                case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
-                case g: h = ((b - r) / d + 2) / 6; break;
-                case b: h = ((r - g) / d + 4) / 6; break;
-              }
-            }
-            return {
-              h: Math.round(h * 360),
-              s: Math.round(s * 100),
-              l: Math.round(l * 100)
+        // --- Main React App Component ---
+        const App = () => {
+            const [currentColor, setCurrentColor] = React.useState({ r: 45, g: 45, b: 45 });
+            const [isScanning, setIsScanning] = React.useState(false);
+            const [palette, setPalette] = React.useState([]);
+            const [esp32Ip, setEsp32Ip] = React.useState('192.168.4.1');
+            const [activeHarmony, setActiveHarmony] = React.useState('complementary');
+            const scanIntervalRef = React.useRef(null);
+            
+            // --- Color Conversion Utilities ---
+            const rgbToHex = (r, g, b) => {
+                return '#' + [r, g, b].map(x => {
+                const hex = x.toString(16);
+                return hex.length === 1 ? '0' + hex : hex;
+                }).join('');
             };
-          };
 
-          const rgbToCmyk = (r, g, b) => {
-            let c = 1 - (r / 255);
-            let m = 1 - (g / 255);
-            let y = 1 - (b / 255);
-            let k = Math.min(c, m, y);
-            
-            if (k === 1) return { c: 0, m: 0, y: 0, k: 100 };
-            
-            c = Math.round(((c - k) / (1 - k)) * 100);
-            m = Math.round(((m - k) / (1 - k)) * 100);
-            y = Math.round(((y - k) / (1 - k)) * 100);
-            k = Math.round(k * 100);
-            
-            return { c, m, y, k };
-          };
-          
-          // --- Harmonies & Palette Logic (Untouched) ---
-          const getComplementary = (r, g, b) => {
-            return { r: 255 - r, g: 255 - g, b: 255 - b };
-          };
+            const rgbToHsl = (r, g, b) => {
+                r /= 255; g /= 255; b /= 255;
+                const max = Math.max(r, g, b), min = Math.min(r, g, b);
+                let h, s, l = (max + min) / 2;
 
-          const hslToRgb = (h, s, l) => {
-            s /= 100; l /= 100;
-            const c = (1 - Math.abs(2 * l - 1)) * s;
-            const x = c * (1 - Math.abs((h / 60) % 2 - 1));
-            const m = l - c / 2;
-            let r, g, b;
-
-            if (h < 60) [r, g, b] = [c, x, 0];
-            else if (h < 120) [r, g, b] = [x, c, 0];
-            else if (h < 180) [r, g, b] = [0, c, x];
-            else if (h < 240) [r, g, b] = [0, x, c];
-            else if (h < 300) [r, g, b] = [x, 0, c];
-            else [r, g, b] = [c, 0, x];
-
-            return {
-              r: Math.round((r + m) * 255),
-              g: Math.round((g + m) * 255),
-              b: Math.round((b + m) * 255)
+                if (max === min) {
+                h = s = 0;
+                } else {
+                const d = max - min;
+                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                switch (max) {
+                    case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+                    case g: h = ((b - r) / d + 2) / 6; break;
+                    case b: h = ((r - g) / d + 4) / 6; break;
+                }
+                }
+                return {
+                h: Math.round(h * 360),
+                s: Math.round(s * 100),
+                l: Math.round(l * 100)
+                };
             };
-          };
 
-          const getAnalogous = (r, g, b) => {
-            const hsl = rgbToHsl(r, g, b);
-            return [
-              hslToRgb((hsl.h + 30) % 360, hsl.s, hsl.l),
-              hslToRgb((hsl.h - 30 + 360) % 360, hsl.s, hsl.l)
-            ];
-          };
+            const rgbToCmyk = (r, g, b) => {
+                let c = 1 - (r / 255);
+                let m = 1 - (g / 255);
+                let y = 1 - (b / 255);
+                let k = Math.min(c, m, y);
+                
+                if (k === 1) return { c: 0, m: 0, y: 0, k: 100 };
+                
+                c = Math.round(((c - k) / (1 - k)) * 100);
+                m = Math.round(((m - k) / (1 - k)) * 100);
+                y = Math.round(((y - k) / (1 - k)) * 100);
+                k = Math.round(k * 100);
+                
+                return { c, m, y, k };
+            };
 
-          const getTriadic = (r, g, b) => {
-            const hsl = rgbToHsl(r, g, b);
-            return [
-              hslToRgb((hsl.h + 120) % 360, hsl.s, hsl.l),
-              hslToRgb((hsl.h + 240) % 360, hsl.s, hsl.l)
-            ];
-          };
+            // Basic color naming
+            const getColorName = (r, g, b) => {
+                // This is a very simple lookup. The AI version was more descriptive.
+                const colorNames = {
+                '#FF0000': 'Red', '#00FF00': 'Green', '#0000FF': 'Blue',
+                '#FFFF00': 'Yellow', '#FF00FF': 'Magenta', '#00FFFF': 'Cyan',
+                '#FFA500': 'Orange', '#800080': 'Purple', '#FFC0CB': 'Pink',
+                '#A52A2A': 'Brown', '#808080': 'Gray', '#000000': 'Black',
+                '#FFFFFF': 'White', '#FFD700': 'Gold', '#C0C0C0': 'Silver'
+                };
 
-          const getSplitComplementary = (r, g, b) => {
-            const hsl = rgbToHsl(r, g, b);
-            const compHue = (hsl.h + 180) % 360;
-            return [
-              hslToRgb((compHue + 30) % 360, hsl.s, hsl.l),
-              hslToRgb((compHue - 30 + 360) % 360, hsl.s, hsl.l)
-            ];
-          };
+                const hex = rgbToHex(r, g, b);
+                let closestColor = 'Custom Color';
+                let minDistance = Infinity;
 
-          // --- ESP32 Communication & App Logic ---
-          useEffect(() => {
-            const fetchColor = async () => {
+                Object.entries(colorNames).forEach(([colorHex, name]) => {
+                const cr = parseInt(colorHex.slice(1, 3), 16);
+                const cg = parseInt(colorHex.slice(3, 5), 16);
+                const cb = parseInt(colorHex.slice(5, 7), 16);
+                const distance = Math.sqrt(
+                    Math.pow(r - cr, 2) + Math.pow(g - cg, 2) + Math.pow(b - cb, 2)
+                );
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestColor = name;
+                }
+                });
+                
+                // If it's very close to black, gray, or white, use those names.
+                const l = rgbToHsl(r, g, b).l;
+                const s = rgbToHsl(r, g, b).s;
+                if (l < 10) return 'Black';
+                if (l > 95) return 'White';
+                if (s < 10 && l > 10 && l < 90) return 'Gray';
+
+                return closestColor;
+            };
+
+            // --- Color Harmony Calculations ---
+            const getComplementary = (r, g, b) => {
+                return { r: 255 - r, g: 255 - g, b: 255 - b };
+            };
+
+            const hslToRgb = (h, s, l) => {
+                s /= 100; l /= 100;
+                const c = (1 - Math.abs(2 * l - 1)) * s;
+                const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+                const m = l - c / 2;
+                let r, g, b;
+
+                if (h < 60) [r, g, b] = [c, x, 0];
+                else if (h < 120) [r, g, b] = [x, c, 0];
+                else if (h < 180) [r, g, b] = [0, c, x];
+                else if (h < 240) [r, g, b] = [0, x, c];
+                else if (h < 300) [r, g, b] = [x, 0, c];
+                else [r, g, b] = [c, 0, x];
+
+                return {
+                r: Math.round((r + m) * 255),
+                g: Math.round((g + m) * 255),
+                b: Math.round((b + m) * 255)
+                };
+            };
+
+            const getAnalogous = (r, g, b) => {
+                const hsl = rgbToHsl(r, g, b);
+                return [
+                hslToRgb((hsl.h + 30) % 360, hsl.s, hsl.l),
+                hslToRgb((hsl.h - 30 + 360) % 360, hsl.s, hsl.l)
+                ];
+            };
+
+            const getTriadic = (r, g, b) => {
+                const hsl = rgbToHsl(r, g, b);
+                return [
+                hslToRgb((hsl.h + 120) % 360, hsl.s, hsl.l),
+                hslToRgb((hsl.h + 240) % 360, hsl.s, hsl.l)
+                ];
+            };
+
+            const getSplitComplementary = (r, g, b) => {
+                const hsl = rgbToHsl(r, g, b);
+                const compHue = (hsl.h + 180) % 360;
+                return [
+                hslToRgb((compHue + 30) % 360, hsl.s, hsl.l),
+                hslToRgb((compHue - 30 + 360) % 360, hsl.s, hsl.l)
+                ];
+            };
+
+            // --- ESP32 Communication ---
+            const fetchColorFromESP32 = async () => {
+                // Use the user-defined IP address
+                // Use http:// to avoid mixed content errors
+                const API_URL = `http://${esp32Ip}/color`;
+                
                 try {
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 1000);
-                    const response = await fetch(`http://${esp32Ip}/color`, { signal: controller.signal });
-                    clearTimeout(timeoutId);
-                    const data = await response.json();
-                    
-                    // Only update if color is significantly different
-                    if (Math.abs(data.r - currentColor.r) > 5 || Math.abs(data.g - currentColor.g) > 5 || Math.abs(data.b - currentColor.b) > 5) {
-                        setCurrentColor({ r: data.r, g: data.g, b: data.b });
+                    const response = await fetch(API_URL);
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
                     }
+                    const data = await response.json();
+                    setCurrentColor({ r: data.r, g: data.g, b: data.b });
                 } catch (error) {
-                    console.warn("ESP32 not found. Stopping scan.");
-                    if (isScanning) {
-                        toggleScanning(); // Stop scanning if fetch fails
+                    console.error('Failed to fetch color:', error);
+                    // Stop scanning if it fails
+                    stopScanning();
+                    // Optional: Show an error to the user
+                    // alert("Could not connect to ESP32. Check IP and Wi-Fi.");
+                }
+            };
+            
+            const stopScanning = () => {
+                 if (scanIntervalRef.current) {
+                    clearInterval(scanIntervalRef.current);
+                    scanIntervalRef.current = null;
+                }
+                setIsScanning(false);
+            }
+
+            const toggleScanning = () => {
+                if (isScanning) {
+                    stopScanning();
+                } else {
+                    setIsScanning(true);
+                    // Fetch immediately, then set interval
+                    fetchColorFromESP32(); 
+                    scanIntervalRef.current = setInterval(fetchColorFromESP32, 400); // 400ms poll rate
+                }
+            };
+
+            // --- Palette Management ---
+            const addToPalette = () => {
+                if (palette.length < 10) {
+                    // Add to palette if it's not the exact same as the last color
+                    if (palette.length === 0 || JSON.stringify(palette[palette.length - 1]) !== JSON.stringify(currentColor)) {
+                         setPalette([...palette, currentColor]);
                     }
                 }
             };
 
-            if (isScanning) {
-                scanIntervalRef.current = setInterval(fetchColor, 400);
-            } else {
-                clearInterval(scanIntervalRef.current);
-            }
-
-            return () => clearInterval(scanIntervalRef.current);
-          }, [isScanning, esp32Ip, currentColor]); // Added currentColor to dependencies
-
-
-          const toggleScanning = () => {
-            const scanning = !isScanning;
-            setIsScanning(scanning);
-            
-            // ✨ Trigger AI name generation *after* scanning stops
-            if (scanning === false) {
-                getAiColorName(currentColor.r, currentColor.g, currentColor.b);
-            } else {
-                // Clear old AI name when starting a new scan
-                setAiColorName('');
-            }
-          };
-
-          const addToPalette = () => {
-            if (palette.length < 10) {
-              setPalette([...palette, currentColor]);
-            }
-          };
-
-          const removeFromPalette = (index) => {
-            setPalette(palette.filter((_, i) => i !== index));
-          };
-
-          const copyToClipboard = (text) => {
-            const ta = document.createElement('textarea');
-            ta.value = text;
-            ta.style.position = 'absolute';
-            ta.style.left = '-9999px';
-            document.body.appendChild(ta);
-            ta.select();
-            try {
-                document.execCommand('copy');
-            } catch (err) {
-                console.error('Copy failed', err);
-            }
-            document.body.removeChild(ta);
-          };
-
-          const exportPalette = (format) => {
-            // (Function unchanged)
-            if (format === 'css') {
-              const css = palette.map((color, i) => 
-                `--color-${i + 1}: ${rgbToHex(color.r, color.g, color.b)};`
-              ).join('\n');
-              copyToClipboard(`:root {\n  ${css}\n}`);
-            } else if (format === 'hex') {
-              const hexCodes = palette.map(c => rgbToHex(c.r, c.g, c.b)).join(', ');
-              copyToClipboard(hexCodes);
-            } else if (format === 'image') {
-              const canvas = document.createElement('canvas');
-              canvas.width = palette.length * 100;
-              canvas.height = 100;
-              const ctx = canvas.getContext('2d');
-              palette.forEach((color, i) => {
-                ctx.fillStyle = rgbToHex(color.r, color.g, color.b);
-                ctx.fillRect(i * 100, 0, 100, 100);
-              });
-              canvas.toBlob(blob => {
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'palette.png';
-                a.click();
-              });
-            }
-          };
-
-          // --- Pre-calculate values for rendering ---
-          const { r, g, b } = currentColor;
-          const hex = rgbToHex(r, g, b);
-          const hsl = rgbToHsl(r, g, b);
-          const cmyk = rgbToCmyk(r, g, b);
-          // const colorName = getColorName(r, g, b); // We are replacing this
-          const complementary = getComplementary(r, g, b);
-          const analogous = getAnalogous(r, g, b);
-          const triadic = getTriadic(r, g, b);
-          const splitComp = getSplitComplementary(r, g, b);
-
-          const harmonies = {
-            complementary: [currentColor, complementary],
-            analogous: [analogous[0], currentColor, analogous[1]],
-            triadic: [currentColor, triadic[0], triadic[1]],
-            split: [currentColor, splitComp[0], splitComp[1]]
-          };
-
-          // --- Sub-components for rendering ---
-          const ColorSwatch = ({ color, size = 'md', glow = false }) => {
-            const sizeClasses = {
-              sm: 'w-10 h-10',
-              md: 'w-16 h-16',
-              lg: 'w-24 h-24'
+            const removeFromPalette = (index) => {
+                setPalette(palette.filter((_, i) => i !== index));
             };
-            const colorHex = rgbToHex(color.r, color.g, color.b);
+
+            const copyToClipboard = (text) => {
+                navigator.clipboard.writeText(text).then(() => {
+                    // Optional: Show a "Copied!" notification
+                }, (err) => {
+                    console.error('Failed to copy text: ', err);
+                });
+            };
+
+            const exportPalette = (format) => {
+                if (format === 'css') {
+                const css = palette.map((color, i) => 
+                    `--color-${i + 1}: ${rgbToHex(color.r, color.g, color.b)};`
+                ).join('\n');
+                copyToClipboard(`:root {\n  ${css}\n}`);
+                } else if (format === 'hex') {
+                const hexCodes = palette.map(c => rgbToHex(c.r, c.g, c.b)).join(', ');
+                copyToClipboard(hexCodes);
+                } else if (format === 'image') {
+                const canvas = document.createElement('canvas');
+                canvas.width = palette.length * 100;
+                canvas.height = 100;
+                const ctx = canvas.getContext('2d');
+                palette.forEach((color, i) => {
+                    ctx.fillStyle = rgbToHex(color.r, color.g, color.b);
+                    ctx.fillRect(i * 100, 0, 100, 100);
+                });
+                canvas.toBlob(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'palette.png';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                });
+                }
+            };
+
+            // --- Calculate derived data ---
+            const { r, g, b } = currentColor;
+            const hex = rgbToHex(r, g, b);
+            const hsl = rgbToHsl(r, g, b);
+            const cmyk = rgbToCmyk(r, g, b);
+            
+            // Get color name only when not scanning
+            const [colorName, setColorName] = React.useState('Custom Color');
+            React.useEffect(() => {
+                if (!isScanning) {
+                    setColorName(getColorName(r, g, b));
+                }
+            }, [currentColor, isScanning]);
+
+
+            const complementary = getComplementary(r, g, b);
+            const analogous = getAnalogous(r, g, b);
+            const triadic = getTriadic(r, g, b);
+            const splitComp = getSplitComplementary(r, g, b);
+
+            const harmonies = {
+                complementary: [currentColor, complementary],
+                analogous: [analogous[0], currentColor, analogous[1]],
+                triadic: [currentColor, triadic[0], triadic[1]],
+                split: [currentColor, splitComp[0], splitComp[1]]
+            };
+
+            // --- Sub-Components ---
+            const ColorSwatch = ({ color, size = 'md', glow = false }) => {
+                const sizeClasses = {
+                sm: 'w-10 h-10',
+                md: 'w-16 h-16',
+                lg: 'w-24 h-24'
+                };
+                const colorHex = rgbToHex(color.r, color.g, color.b);
+                return (
+                <div 
+                    className={`${sizeClasses[size]} rounded border border-zinc-800 transition-all hover:scale-110 cursor-pointer ${glow ? 'shadow-lg' : ''}`}
+                    style={{ 
+                    backgroundColor: colorHex,
+                    boxShadow: glow ? `0 0 30px ${colorHex}80` : 'none'
+                    }}
+                    onClick={() => copyToClipboard(colorHex)}
+                />
+                );
+            };
+
+            // --- JSX Output ---
             return (
-              <div 
-                className={`${sizeClasses[size]} rounded border border-zinc-800 transition-all hover:scale-110 cursor-pointer ${glow ? 'shadow-lg' : ''}`}
-                style={{ 
-                  backgroundColor: colorHex,
-                  boxShadow: glow ? `0 0 30px ${colorHex}80` : 'none'
-                }}
-                onClick={() => copyToClipboard(colorHex)}
-              />
-            );
-          };
-
-          // --- Main Render Function (JSX) ---
-          return (
-            <div className="min-h-screen bg-black text-zinc-100">
-              {/* Animated Grid Background */}
-              <div className="fixed inset-0 bg-[linear-gradient(to_right,#0a0a0a_1px,transparent_1px),linear-gradient(to_bottom,#0a0a0a_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)]" />
-              
-              <div className="relative z-10 max-w-7xl mx-auto px-4 py-8">
-                {/* Header */}
-                <div className="flex flex-wrap items-center justify-between gap-4 mb-12 border-b border-zinc-800 pb-6">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-zinc-900 rounded-lg border border-zinc-800">
-                      <Scan className="w-6 h-6 text-cyan-400" />
+                <div className="min-h-screen bg-black text-zinc-100">
+                {/* Animated Grid Background */}
+                <div className="fixed inset-0 bg-[linear-gradient(to_right,#0a0a0a_1px,transparent_1px),linear-gradient(to_bottom,#0a0a0a_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)]" />
+                
+                <div className="relative z-10 max-w-7xl mx-auto px-4 py-8">
+                    {/* Header */}
+                    <div className="flex flex-col sm:flex-row items-center justify-between mb-12 border-b border-zinc-800 pb-6 gap-4">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-zinc-900 rounded-lg border border-zinc-800">
+                        <Scan className="w-6 h-6 text-cyan-400" />
+                        </div>
+                        <div>
+                        <h1 className="text-3xl font-bold tracking-tight text-center sm:text-left">SMART COLORIMETER</h1>
+                        <p className="text-xs text-zinc-500 font-mono text-center sm:text-left">ESP32_v1.0</p>
+                        </div>
                     </div>
-                    <div>
-                      <h1 className="text-3xl font-bold tracking-tight">COLORIMETER</h1>
-                      <p className="text-xs text-zinc-500 font-mono">ESP32_v1.0</p>
+                    {/* IP Address Input */}
+                    <div className="flex items-center gap-2 text-xs font-mono w-full sm:w-auto">
+                        <Activity className={`w-3 h-3 ${isScanning ? 'text-green-400 animate-pulse' : 'text-zinc-600'}`} />
+                        <span className="text-zinc-500">IP:</span>
+                        <input 
+                            type="text"
+                            value={esp32Ip}
+                            onChange={(e) => setEsp32Ip(e.target.value)}
+                            disabled={isScanning}
+                            className="bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-zinc-300 w-full sm:w-32 disabled:opacity-50"
+                            placeholder="192.168.1.XXX"
+                        />
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs font-mono">
-                    <Activity className={`w-3 h-3 ${isScanning ? 'text-green-400 animate-pulse' : 'text-zinc-600'}`} />
-                    <span className="text-zinc-500">{esp32Ip}</span>
-                  </div>
-                </div>
+                    </div>
 
-                {/* Main Content Grid */}
-                <div className="grid lg:grid-cols-5 gap-6 mb-6">
-                  
-                  {/* Main Color Display (Left Side) */}
-                  <div className="lg:col-span-3 space-y-6">
-                    {/* Live Preview */}
-                    <div className="bg-zinc-950 border border-zinc-800 rounded-lg overflow-hidden">
-                      <div className="p-6">
-                        <div className="relative">
-                          <div 
-                            className="w-full h-80 rounded border border-zinc-800 transition-all duration-300 relative overflow-hidden"
-                            style={{ backgroundColor: hex }}
-                          >
-                            {/* Scan Lines Effect */}
-                            {isScanning && (
-                              <div className="absolute inset-0 opacity-20">
-                                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white to-transparent animate-scan" />
-                              </div>
-                            )}
-                          </div>
-                          <div className="absolute top-4 left-4 flex gap-2">
-                            {/* --- ✨ AI Color Name Feature --- */}
-                            <div className="px-3 py-1.5 bg-black/80 backdrop-blur-sm border border-zinc-800 rounded font-mono text-xs text-cyan-400 min-w-[100px] text-center">
-                              {isNameLoading ? <span className="spinner" /> : (aiColorName || '...')}
+                    {/* Main Grid Layout */}
+                    <div className="grid lg:grid-cols-3 gap-6 mb-6">
+                    
+                    {/* Left Column: Scan & Data */}
+                    <div className="lg:col-span-2 space-y-6">
+                        {/* Live Preview */}
+                        <div className="bg-zinc-950 border border-zinc-800 rounded-lg overflow-hidden">
+                        <div className="p-6">
+                            <div className="relative">
+                            <div 
+                                className="w-full h-80 rounded border border-zinc-800 transition-all duration-300 relative overflow-hidden"
+                                style={{ backgroundColor: hex }}
+                            >
+                                {/* Scan Lines Effect */}
+                                {isScanning && (
+                                <div className="absolute inset-0 opacity-20">
+                                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white to-transparent animate-scan" />
+                                </div>
+                                )}
                             </div>
-                            <div className={`px-3 py-1.5 bg-black/80 backdrop-blur-sm border rounded font-mono text-xs ${
-                              isScanning ? 'border-green-500 text-green-400' : 'border-zinc-800 text-zinc-400'
-                            }`}>
-                              {isScanning ? '● REC' : '○ IDLE'}
+                            <div className="absolute top-4 left-4 flex gap-2">
+                                <div className="px-3 py-1.5 bg-black/80 backdrop-blur-sm border border-zinc-800 rounded font-mono text-xs">
+                                {colorName.toUpperCase()}
+                                </div>
+                                <div className={`px-3 py-1.5 bg-black/80 backdrop-blur-sm border rounded font-mono text-xs ${
+                                isScanning ? 'border-green-500 text-green-400' : 'border-zinc-800 text-zinc-400'
+                                }`}>
+                                {isScanning ? '● REC' : '○ IDLE'}
+                                </div>
                             </div>
-                          </div>
+                            </div>
+
+                            {/* Controls */}
+                            <div className="grid grid-cols-2 gap-3 mt-6">
+                            <button
+                                onClick={toggleScanning}
+                                className={`flex items-center justify-center gap-2 py-4 rounded font-semibold transition-all border ${
+                                isScanning 
+                                    ? 'bg-red-500/10 border-red-500 text-red-400 hover:bg-red-500/20' 
+                                    : 'bg-cyan-500/10 border-cyan-500 text-cyan-400 hover:bg-cyan-500/20'
+                                }`}
+                            >
+                                {isScanning ? <Square className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                                {isScanning ? 'STOP' : 'SCAN'}
+                            </button>
+                            <button
+                                onClick={addToPalette}
+                                disabled={palette.length >= 10 || isScanning}
+                                className="flex items-center justify-center gap-2 py-4 rounded font-semibold transition-all bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 disabled:opacity-30 disabled:cursor-not-allowed"
+                            >
+                                <Plus className="w-4 h-4" />
+                                ADD TO PALETTE
+                            </button>
+                            </div>
+                        </div>
                         </div>
 
-                        {/* Controls */}
-                        <div className="grid grid-cols-2 gap-3 mt-6">
-                          <button
-                            onClick={toggleScanning}
-                            className={`flex items-center justify-center gap-2 py-4 rounded font-semibold transition-all border ${
-                              isScanning 
-                                ? 'bg-red-500/10 border-red-500 text-red-400 hover:bg-red-500/20' 
-                                : 'bg-cyan-500/10 border-cyan-500 text-cyan-400 hover:bg-cyan-500/20'
-                            }`}
-                          >
-                            {isScanning ? <Square className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                            {isScanning ? 'STOP' : 'SCAN'}
-                          </button>
-                          <button
-                            onClick={addToPalette}
-                            disabled={palette.length >= 10}
-                            className="flex items-center justify-center gap-2 py-4 rounded font-semibold transition-all bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 disabled:opacity-30 disabled:cursor-not-allowed"
-                          >
-                            <Plus className="w-4 h-4" />
-                            ADD TO PALETTE
-                          </button>
+                        {/* Color Data Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
+                            <div className="text-xs text-zinc-500 mb-2 font-mono">HEX</div>
+                            <div className="flex items-center justify-between">
+                            <span className="font-mono text-xl font-bold">{hex.toUpperCase()}</span>
+                            <Copy 
+                                className="w-4 h-4 text-zinc-600 hover:text-cyan-400 cursor-pointer transition-colors" 
+                                onClick={() => copyToClipboard(hex)}
+                            />
+                            </div>
                         </div>
-                      </div>
+                        <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
+                            <div className="text-xs text-zinc-500 mb-2 font-mono">RGB</div>
+                            <div className="flex items-center justify-between">
+                            <span className="font-mono text-sm">{r}, {g}, {b}</span>
+                            <Copy 
+                                className="w-4 h-4 text-zinc-600 hover:text-cyan-400 cursor-pointer transition-colors" 
+                                onClick={() => copyToClipboard(`rgb(${r}, ${g}, ${b})`)}
+                            />
+                            </div>
+                        </div>
+                        <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
+                            <div className="text-xs text-zinc-500 mb-2 font-mono">HSL</div>
+                            <div className="flex items-center justify-between">
+                            <span className="font-mono text-sm">{hsl.h}° {hsl.s}% {hsl.l}%</span>
+                            <Copy 
+                                className="w-4 h-4 text-zinc-600 hover:text-cyan-400 cursor-pointer transition-colors" 
+                                onClick={() => copyToClipboard(`hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`)}
+                            />
+                            </div>
+                        </div>
+                        <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
+                            <div className="text-xs text-zinc-500 mb-2 font-mono">CMYK</div>
+                            <div className="flex items-center justify-between">
+                            <span className="font-mono text-sm">{cmyk.c} {cmyk.m} {cmyk.y} {cmyk.k}</span>
+                            <Copy 
+                                className="w-4 h-4 text-zinc-600 hover:text-cyan-400 cursor-pointer transition-colors" 
+                                onClick={() => copyToClipboard(`cmyk(${cmyk.c}, ${cmyk.m}, ${cmyk.y}, ${cmyk.k})`)}
+                            />
+                            </div>
+                        </div>
+                        </div>
                     </div>
 
-                    {/* Color Data Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* (Data grid unchanged) */}
-                      <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
-                        <div className="text-xs text-zinc-500 mb-2 font-mono">HEX</div>
-                        <div className="flex items-center justify-between">
-                          <span className="font-mono text-xl font-bold">{hex.toUpperCase()}</span>
-                          <Copy 
-                            className="w-4 h-4 text-zinc-600 hover:text-cyan-400 cursor-pointer transition-colors" 
-                            onClick={() => copyToClipboard(hex)}
-                          />
+                    {/* Right Column: Harmony */}
+                    <div className="lg:col-span-1 space-y-6">
+                        <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-6">
+                        <div className="text-sm font-bold mb-4 text-zinc-400 tracking-wide">COLOR HARMONY</div>
+                        
+                        <div className="flex flex-wrap gap-2 mb-6">
+                            {Object.keys(harmonies).map(key => (
+                            <button
+                                key={key}
+                                onClick={() => setActiveHarmony(key)}
+                                className={`px-3 py-1.5 rounded text-xs font-mono transition-all border ${
+                                activeHarmony === key
+                                    ? 'bg-cyan-500/10 border-cyan-500 text-cyan-400'
+                                    : 'bg-zinc-900 border-zinc-800 text-zinc-500 hover:text-zinc-300'
+                                }`}
+                            >
+                                {key.toUpperCase()}
+                            </button>
+                            ))}
                         </div>
-                      </div>
-                      <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
-                        <div className="text-xs text-zinc-500 mb-2 font-mono">RGB</div>
-                        <div className="flex items-center justify-between">
-                          <span className="font-mono text-sm">{r}, {g}, {b}</span>
-                          <Copy 
-                            className="w-4 h-4 text-zinc-600 hover:text-cyan-400 cursor-pointer transition-colors" 
-                            onClick={() => copyToClipboard(`rgb(${r}, ${g}, ${b})`)}
-                          />
-                        </div>
-                      </div>
-                      <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
-                        <div className="text-xs text-zinc-500 mb-2 font-mono">HSL</div>
-                        <div className="flex items-center justify-between">
-                          <span className="font-mono text-sm">{hsl.h}° {hsl.s}% {hsl.l}%</span>
-                          <Copy 
-                            className="w-4 h-4 text-zinc-600 hover:text-cyan-400 cursor-pointer transition-colors" 
-                            onClick={() => copyToClipboard(`hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`)}
-                          />
-                        </div>
-                      </div>
-                      <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
-                        <div className="text-xs text-zinc-500 mb-2 font-mono">CMYK</div>
-                        <div className="flex items-center justify-between">
-                          <span className="font-mono text-sm">{cmyk.c} {cmyk.m} {cmyk.y} {cmyk.k}</span>
-                          <Copy 
-                            className="w-4 h-4 text-zinc-600 hover:text-cyan-400 cursor-pointer transition-colors" 
-                            onClick={() => copyToClipboard(`cmyk(${cmyk.c}, ${cmyk.m}, ${cmyk.y}, ${cmyk.k})`)}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
 
-                  {/* Harmony Panel (Right Side) */}
-                  <div className="lg:col-span-2 space-y-6">
-                    {/* (Harmony panel unchanged) */}
+                        <div className="flex gap-3 justify-center">
+                            {harmonies[activeHarmony].map((color, i) => (
+                            <ColorSwatch key={i} color={color} size="lg" glow={i === 0 && harmonies[activeHarmony].length > 1} />
+                            ))}
+                        </div>
+
+                        <div className="mt-6 p-4 bg-zinc-900 rounded border border-zinc-800">
+                            <div className="text-xs text-zinc-500 mb-2">CLICK TO COPY HEX</div>
+                            <div className="flex flex-wrap gap-2">
+                            {harmonies[activeHarmony].map((color, i) => (
+                                <code key={i} className="text-xs font-mono text-cyan-400 cursor-pointer" onClick={() => copyToClipboard(rgbToHex(color.r, color.g, color.b))}>
+                                {rgbToHex(color.r, color.g, color.b)}
+                                </code>
+                            ))}
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+                    </div>
+
+                    {/* Palette Builder */}
                     <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-6">
-                      <div className="text-sm font-bold mb-4 text-zinc-400 tracking-wide">COLOR HARMONY</div>
-                      
-                      <div className="flex flex-wrap gap-2 mb-6">
-                        {Object.keys(harmonies).map(key => (
-                          <button
-                            key={key}
-                            onClick={() => setActiveHarmony(key)}
-                            className={`px-3 py-1.5 rounded text-xs font-mono transition-all border ${
-                              activeHarmony === key
-                                ? 'bg-cyan-500/10 border-cyan-500 text-cyan-400'
-                                : 'bg-zinc-900 border-zinc-800 text-zinc-500 hover:text-zinc-300'
-                            }`}
-                          >
-                            {key.toUpperCase()}
-                          </button>
-                        ))}
-                      </div>
-
-                      <div className="flex gap-3 justify-center">
-                        {harmonies[activeHarmony].map((color, i) => (
-                          <ColorSwatch key={i} color={color} size="lg" glow={i === 0} />
-                        ))}
-                      </div>
-
-                      <div className="mt-6 p-4 bg-zinc-900 rounded border border-zinc-800">
-                        <div className="text-xs text-zinc-500 mb-2">CLICK TO COPY HEX</div>
-                        <div className="flex flex-wrap gap-2">
-                          {harmonies[activeHarmony].map((color, i) => (
-                            <code key={i} className="text-xs font-mono text-cyan-400">
-                              {rgbToHex(color.r, color.g, color.b)}
-                            </code>
-                          ))}
+                    <div className="flex flex-col md:flex-row items-center justify-between mb-6 gap-4">
+                        <div>
+                        <h2 className="text-xl font-bold text-center md:text-left">PALETTE</h2>
+                        <p className="text-xs text-zinc-500 font-mono text-center md:text-left">{palette.length}/10 colors</p>
                         </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Palette Builder */}
-                <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-6">
-                  <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-                    <div>
-                      <h2 className="text-xl font-bold">PALETTE</h2>
-                      <p className="text-xs text-zinc-500 font-mono">{palette.length}/10 colors</p>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {/* --- ✨ AI Palette Description Button --- */}
-                      <button
-                        onClick={getPaletteDescription}
-                        disabled={palette.length < 2 || isPaletteLoading}
-                        className="flex items-center gap-2 px-4 py-2 bg-cyan-500/10 border border-cyan-500 text-cyan-400 hover:bg-cyan-500/20 disabled:opacity-30 disabled:cursor-not-allowed rounded text-sm font-mono transition-all"
-                      >
-                        <Sparkles className="w-4 h-4" />
-                        {isPaletteLoading ? 'Describing...' : 'Describe Palette'}
-                      </button>
-                      <button
-                        onClick={() => exportPalette('css')}
-                        disabled={palette.length === 0}
-                        className="flex items-center gap-2 px-4 py-2 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 disabled:opacity-30 disabled:cursor-not-allowed rounded text-sm font-mono transition-all"
-                      >
-                        <FileCode className="w-4 h-4" />
-                        CSS
-                      </button>
-                      <button
-                        onClick={() => exportPalette('hex')}
-                        disabled={palette.length === 0}
-                        className="flex items-center gap-2 px-4 py-2 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 disabled:opacity-30 disabled:cursor-not-allowed rounded text-sm font-mono transition-all"
-                      >
-                        <Copy className="w-4 h-4" />
-                        HEX
-                      </button>
-                      <button
-                        onClick={() => exportPalette('image')}
-                        disabled={palette.length === 0}
-                        className="flex items-center gap-2 px-4 py-2 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 disabled:opacity-30 disabled:cursor-not-allowed rounded text-sm font-mono transition-all"
-                      >
-                        <Download className="w-4 h-4" />
-                        PNG
-                      </button>
-                    </div>
-                  </div>
-                  
-                  {/* --- ✨ AI Palette Description Output --- */}
-                  { (isPaletteLoading || paletteDescription) && (
-                    <div className="mb-6 p-4 bg-zinc-900 rounded border border-zinc-800 text-zinc-300 italic">
-                      {isPaletteLoading ? <span className="spinner" /> : paletteDescription}
-                    </div>
-                  )}
-
-                  {geminiError && (
-                    <div className="mb-6 p-4 bg-red-500/10 rounded border border-red-500 text-red-400">
-                      {geminiError}
-                    </div>
-                  )}
-
-                  {palette.length === 0 ? (
-                    <div className="text-center py-20 border-2 border-dashed border-zinc-800 rounded">
-                      <Droplets className="w-12 h-12 mx-auto mb-3 text-zinc-700" />
-                      <p className="text-zinc-600 text-sm font-mono">NO COLORS SAVED YET</p>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-5 md:grid-cols-10 gap-3">
-                      {palette.map((color, index) => (
-                        <div key={index} className="relative group">
-                          <div 
-                            className="w-full h-20 rounded border border-zinc-800 transition-all hover:scale-105 cursor-pointer"
-                            style={{ backgroundColor: rgbToHex(color.r, color.g, color.b) }}
-                            onClick={() => copyToClipboard(rgbToHex(color.r, color.g, color.b))}
-                          />
-                          <button
-                            onClick={() => removeFromPalette(index)}
-                            className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity border border-red-600"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                          <p className="text-xs text-center mt-2 font-mono text-zinc-600">
-                            {rgbToHex(color.r, color.g, color.b).slice(1)}
-                          </p>
+                        <div className="flex flex-wrap justify-center gap-2">
+                        <button
+                            onClick={() => exportPalette('css')}
+                            disabled={palette.length === 0}
+                            className="flex items-center gap-2 px-4 py-2 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 disabled:opacity-30 disabled:cursor-not-allowed rounded text-sm font-mono transition-all"
+                        >
+                            <FileCode className="w-4 h-4" />
+                            CSS
+                        </button>
+                        <button
+                            onClick={() => exportPalette('hex')}
+                            disabled={palette.length === 0}
+                            className="flex items-center gap-2 px-4 py-2 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 disabled:opacity-30 disabled:cursor-not-allowed rounded text-sm font-mono transition-all"
+                        >
+                            <Copy className="w-4 h-4" />
+                            HEX
+                        </button>
+                        <button
+                            onClick={() => exportPalette('image')}
+                            disabled={palette.length === 0}
+                            className="flex items-center gap-2 px-4 py-2 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 disabled:opacity-30 disabled:cursor-not-allowed rounded text-sm font-mono transition-all"
+                        >
+                            <Download className="w-4 h-4" />
+                            PNG
+                        </button>
                         </div>
-                      ))}
                     </div>
-                  )}
+
+                    {palette.length === 0 ? (
+                        <div className="text-center py-20 border-2 border-dashed border-zinc-800 rounded">
+                        <Droplets className="w-12 h-12 mx-auto mb-3 text-zinc-700" />
+                        <p className="text-zinc-600 text-sm font-mono">NO COLORS SAVED YET</p>
+                        <p className="text-zinc-700 text-xs font-mono mt-1">Click 'ADD TO PALETTE' to save a color</p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-5 md:grid-cols-10 gap-3">
+                        {palette.map((color, index) => (
+                            <div key={index} className="relative group">
+                            <div 
+                                className="w-full h-20 rounded border border-zinc-800 transition-all hover:scale-105 cursor-pointer"
+                                style={{ backgroundColor: rgbToHex(color.r, color.g, color.b) }}
+                                onClick={() => copyToClipboard(rgbToHex(color.r, color.g, color.b))}
+                            />
+                            <button
+                                onClick={() => removeFromPalette(index)}
+                                className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity border border-red-600 z-10"
+                            >
+                                <X className="w-3 h-3" />
+                            </button>
+                            <p className="text-xs text-center mt-2 font-mono text-zinc-600 truncate">
+                                {rgbToHex(color.r, color.g, color.b).slice(1)}
+                            </p>
+                            </div>
+                        ))}
+                        </div>
+                    )}
+                    </div>
                 </div>
-              </div>
-            </div>
-          );
+                </div>
+            );
         };
-        
-        // --- Mount the App ---
+
+        // 4. Render the App
         const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<ColorimeterApp />);
+        root.render(<App />);
+
     </script>
 </body>
 </html>
